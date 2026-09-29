@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Eggwheel" />
+  <meta name="theme-color" content="#3d6b4f" />
+  <title>Eggwheel — flock & egg color</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="top">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>Eggwheel</h1>
+          <p>Egg to adult · color pairings</p>
+        </div>
+      </div>
+      <button class="btn primary" id="add-bird">Add bird</button>
+    </header>
+
+    <section id="view-wheel" class="view">
+      <div class="wheel-wrap">
+        <div class="wheel-stage" id="wheel-stage">
+          <div class="wheel" id="wheel" role="img" aria-label="Egg color wheel"></div>
+          <div class="wheel-center">
+            <div class="egg-swatch" id="center-swatch"></div>
+            <h2 id="center-name">Olive</h2>
+            <p id="center-blurb">Tap a slice</p>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <h2 id="color-title">Olive eggs</h2>
+        <p id="color-blurb"></p>
+        <div class="recipe">
+          <h3>How to breed it</h3>
+          <p id="color-recipe"></p>
+          <div class="chip-row" id="color-breeds"></div>
+        </div>
+        <div class="recipe">
+          <h3>Pairs from your flock</h3>
+          <div id="flock-pairs" class="pair-grid"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-flock" class="view hidden">
+      <div class="stats">
+        <div class="stat"><b id="stat-birds">0</b><span>Birds</span></div>
+        <div class="stat"><b id="stat-layers">0</b><span>Layers</span></div>
+        <div class="stat"><b id="stat-colors">0</b><span>Colors</span></div>
+      </div>
+      <div class="toolbar">
+        <input id="flock-search" placeholder="Search name, ID, breed, source" />
+        <select id="flock-filter">
+          <option value="all">All</option>
+          <option value="hens">Hens</option>
+          <option value="roosters">Roosters</option>
+          <option value="young">Egg to grower</option>
+        </select>
+      </div>
+      <div id="flock-list" class="flock-list"></div>
+    </section>
+
+    <section id="view-hatches" class="view hidden">
+      <button class="btn primary" id="new-hatch">New hatch run</button>
+      <div id="hatch-list" class="flock-list" style="margin-top:12px"></div>
+    </section>
+
+    <section id="view-learn" class="view hidden">
+      <div id="learn-body"></div>
+      <div class="card" style="margin-top:12px">
+        <h3>Backup</h3>
+        <p class="meta">Everything stays on this device. Export a copy before you switch phones.</p>
+        <div class="toolbar">
+          <button class="btn" id="export-btn">Export flock</button>
+          <label class="btn">Import<input id="import-input" type="file" accept="application/json" hidden /></label>
+          <button class="btn ghost" id="demo-btn">Load sample flock</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <nav class="nav">
+    <button data-view="wheel" class="active"><span>◎</span>Wheel</button>
+    <button data-view="flock"><span>☰</span>Flock</button>
+    <button data-view="hatches"><span>○</span>Hatches</button>
+    <button data-view="learn"><span>?</span>Guide</button>
+  </nav>
+
+  <div id="bird-modal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:40;overflow:auto;padding:16px">
+    <div class="card" style="max-width:640px;margin:20px auto 40px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <h2 style="margin:0">Bird record</h2>
+        <button class="icon-btn" id="close-bird">×</button>
+      </div>
+      <form id="bird-form" class="grid" style="margin-top:12px">
+        <div class="photo-pick">
+          <div id="photo-preview"><div class="ph">Photo</div></div>
+          <label>Picture
+            <input id="photo-input" type="file" accept="image/*" />
+          </label>
+        </div>
+        <div class="two">
+          <label>Chicken ID<input name="bandId" required placeholder="CL-001" /></label>
+          <label>Name<input name="name" placeholder="Sky" /></label>
+        </div>
+        <div class="two">
+          <label>Sex
+            <select name="sex">
+              <option value="hen">Hen</option>
+              <option value="rooster">Rooster</option>
+              <option value="unknown">Unknown</option>
+            </select>
+          </label>
+          <label>Life stage
+            <select name="stage">
+              <option>egg</option>
+              <option>incubating</option>
+              <option>chick</option>
+              <option>grower</option>
+              <option selected>adult</option>
+              <option>retired</option>
+              <option>sold</option>
+              <option>deceased</option>
+            </select>
+          </label>
+        </div>
+        <label>Breed<input name="breed" placeholder="Ameraucana, Olive Egger…" /></label>
+        <div class="two">
+          <label>Hatch date<input name="hatchDate" type="date" /></label>
+          <label>Acquired<input name="acquiredDate" type="date" /></label>
+        </div>
+        <div class="two">
+          <label>Egg color this bird lays / comes from
+            <select name="eggColor" id="color-options"></select>
+          </label>
+          <label>Blue gene (O)
+            <select name="blueGene">
+              <option value="unknown">Unknown</option>
+              <option value="none">None</option>
+              <option value="one">One copy</option>
+              <option value="two">Two copies</option>
+            </select>
+          </label>
+        </div>
+        <div class="two">
+          <label>Brown overlay
+            <select name="brownLevel">
+              <option value="unknown">Unknown</option>
+              <option value="none">None</option>
+              <option value="light">Light</option>
+              <option value="medium">Medium</option>
+              <option value="dark">Dark</option>
+              <option value="chocolate">Chocolate</option>
+            </select>
+          </label>
+          <label style="align-content:end">Speckled eggs
+            <input name="speckled" type="checkbox" />
+          </label>
+        </div>
+        <div class="two">
+          <label>Dam<select name="damId"></select></label>
+          <label>Sire<select name="sireId"></select></label>
+        </div>
+        <div id="timeline" class="timeline"></div>
+        <h3 style="margin:8px 0 0">Where it came from</h3>
+        <label>Source / hatchery / neighbor<input name="sourcePlace" placeholder="Murray McMurray, a farm name…" /></label>
+        <div class="two">
+          <label>Contact name<input name="sourceContact" /></label>
+          <label>Phone<input name="sourcePhone" type="tel" /></label>
+        </div>
+        <div class="two">
+          <label>Email<input name="sourceEmail" type="email" /></label>
+          <label>Website<input name="sourceWebsite" placeholder="https://" /></label>
+        </div>
+        <label>Comments<textarea name="comments" placeholder="Temperament, health, egg shade notes…"></textarea></label>
+        <button class="btn primary" type="submit">Save bird</button>
+        <button class="btn danger hidden" type="button" id="delete-bird">Delete</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="hatch-modal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:40;overflow:auto;padding:16px">
+    <div class="card" style="max-width:640px;margin:20px auto 40px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <h2 style="margin:0">Hatch run</h2>
+        <button class="icon-btn" id="close-hatch">×</button>
+      </div>
+      <form id="hatch-form" class="grid" style="margin-top:12px">
+        <label>Name<input name="hname" /></label>
+        <label>Set date<input name="setDate" type="date" /></label>
+        <label>Notes<textarea name="notes"></textarea></label>
+        <div id="egg-rows"></div>
+        <button class="btn" type="button" id="add-egg">Add egg</button>
+        <button class="btn" type="button" id="make-chicks">Create chicks from hatched eggs</button>
+        <button class="btn primary" type="submit">Save hatch</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
